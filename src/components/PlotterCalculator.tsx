@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const PlotterCalculator = () => {
+  const printRef = useRef(null); // Referencia al área que se imprimirá
   // Dimensiones del plotter en cm (24 pulgadas = 61 cm)
   const PLOTTER_WIDTH = 61;
   const CUTTING_MARGIN = 0.3; // 3mm de margen entre stickers para corte
@@ -52,146 +54,125 @@ export const PlotterCalculator = () => {
     return costs.paperCost + costs.inkCost + operatingCostPerMeter;
   };
 
+  // Función para imprimir solo el contenido dentro del `printRef`
+  const handlePrint = () => {
+    const printContent: any = printRef.current;
+    const originalContent = document.body.innerHTML;
+
+    document.body.innerHTML = printContent.innerHTML; // Reemplaza el contenido
+    window.print();
+    document.body.innerHTML = originalContent; // Restaura el contenido
+    window.location.reload(); // Recarga la página para evitar errores
+  };
+
+  const fechaArgentina = new Date().toLocaleDateString("es-AR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <section className="w-full h-screen flex flex-col justify-center items-center">
-      <Card className="w-full max-w-4xl">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl">
-            Calculadora de Producción - Epson T1370
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Costos de Producción</h3>
+    <section className="w-full h-auto mt-6 flex flex-col justify-center items-center">
+      {/* Botón para imprimir */}
+      <button
+        onClick={handlePrint}
+        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+      >
+        🖨️ Imprimir
+      </button>
+      <div ref={printRef}>
+        <Card className="w-full max-w-4xl">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">
+              Calculadora de Producción - Epson T1370
+            </CardTitle>
+            <div className="text-center">📆 {fechaArgentina} 📆</div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Costos de Producción</h3>
 
-              <div className="space-y-2">
-                <Label>Costo del papel por metro</Label>
-                <Input
-                  type="number"
-                  onFocus={(e) => e.target.select()}
-                  step="0.01"
-                  value={costs.paperCost}
-                  onChange={(e) =>
-                    setCosts({ ...costs, paperCost: Number(e.target.value) })
-                  }
-                  className="w-full"
-                />
+                <div className="space-y-2">
+                  <Label>Costo del papel por metro</Label>
+                  <Input
+                    type="number"
+                    onFocus={(e) => e.target.select()}
+                    step="0.01"
+                    value={costs.paperCost}
+                    onChange={(e) =>
+                      setCosts({ ...costs, paperCost: Number(e.target.value) })
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Costo de tinta por metro</Label>
+                  <Input
+                    type="number"
+                    onFocus={(e) => e.target.select()}
+                    step="0.01"
+                    value={costs.inkCost}
+                    onChange={(e) =>
+                      setCosts({ ...costs, inkCost: Number(e.target.value) })
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Costo de electricidad por hora</Label>
+                  <Input
+                    type="number"
+                    onFocus={(e) => e.target.select()}
+                    step="0.01"
+                    value={costs.electricityCost}
+                    onChange={(e) =>
+                      setCosts({
+                        ...costs,
+                        electricityCost: Number(e.target.value),
+                      })
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Costo de mano de obra por hora</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={costs.laborCost}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) =>
+                      setCosts({ ...costs, laborCost: Number(e.target.value) })
+                    }
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+                  <p className="font-semibold">
+                    Costo total por metro: $
+                    {calculateCostsPerMeter().toFixed(2)}
+                  </p>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Costo de tinta por metro</Label>
-                <Input
-                  type="number"
-                  onFocus={(e) => e.target.select()}
-                  step="0.01"
-                  value={costs.inkCost}
-                  onChange={(e) =>
-                    setCosts({ ...costs, inkCost: Number(e.target.value) })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Costo de electricidad por hora</Label>
-                <Input
-                  type="number"
-                  onFocus={(e) => e.target.select()}
-                  step="0.01"
-                  value={costs.electricityCost}
-                  onChange={(e) =>
-                    setCosts({
-                      ...costs,
-                      electricityCost: Number(e.target.value),
-                    })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Costo de mano de obra por hora</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={costs.laborCost}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) =>
-                    setCosts({ ...costs, laborCost: Number(e.target.value) })
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-                <p className="font-semibold">
-                  Costo total por metro: ${calculateCostsPerMeter().toFixed(2)}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">
-                Capacidad de Producción por Metro
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 border">Tamaño</th>
-                      <th className="p-2 border">Por Fila</th>
-                      <th className="p-2 border">Por Columna</th>
-                      <th className="p-2 border">Total por Metro</th>
-                      <th className="p-2 border">Área Utilizada</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stickerSizes.map((size) => {
-                      const production = calculateStickersPerMeter(
-                        size.width,
-                        size.height
-                      );
-                      const areaUtilization =
-                        ((production.total * size.width * size.height) /
-                          (PLOTTER_WIDTH * 100)) *
-                        100;
-
-                      return (
-                        <tr key={size.name}>
-                          <td className="p-2 border">
-                            {size.name} ({size.width}x{size.height}cm)
-                          </td>
-                          <td className="p-2 border text-center">
-                            {production.perRow}
-                          </td>
-                          <td className="p-2 border text-center">
-                            {production.perColumn}
-                          </td>
-                          <td className="p-2 border text-center">
-                            {production.total}
-                          </td>
-                          <td className="p-2 border text-center">
-                            {areaUtilization.toFixed(1)}%
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-4">
-                  Producción Total del Rollo (50m)
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">
+                  Capacidad de Producción por Metro
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-100">
                         <th className="p-2 border">Tamaño</th>
-                        <th className="p-2 border">Stickers Totales</th>
-                        <th className="p-2 border">Costo por Sticker</th>
+                        <th className="p-2 border">Por Fila</th>
+                        <th className="p-2 border">Por Columna</th>
+                        <th className="p-2 border">Total por Metro</th>
+                        <th className="p-2 border">Área Utilizada</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -200,9 +181,10 @@ export const PlotterCalculator = () => {
                           size.width,
                           size.height
                         );
-                        const totalStickers = production.total * 50;
-                        const costPerSticker =
-                          (calculateCostsPerMeter() * 50) / totalStickers;
+                        const areaUtilization =
+                          ((production.total * size.width * size.height) /
+                            (PLOTTER_WIDTH * 100)) *
+                          100;
 
                         return (
                           <tr key={size.name}>
@@ -210,10 +192,16 @@ export const PlotterCalculator = () => {
                               {size.name} ({size.width}x{size.height}cm)
                             </td>
                             <td className="p-2 border text-center">
-                              {totalStickers.toLocaleString()}
+                              {production.perRow}
                             </td>
                             <td className="p-2 border text-center">
-                              ${costPerSticker.toFixed(2)}
+                              {production.perColumn}
+                            </td>
+                            <td className="p-2 border text-center">
+                              {production.total}
+                            </td>
+                            <td className="p-2 border text-center">
+                              {areaUtilization.toFixed(1)}%
                             </td>
                           </tr>
                         );
@@ -221,11 +209,53 @@ export const PlotterCalculator = () => {
                     </tbody>
                   </table>
                 </div>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-4">
+                    Producción Total del Rollo (50m)
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="p-2 border">Tamaño</th>
+                          <th className="p-2 border">Stickers Totales</th>
+                          <th className="p-2 border">Costo por Sticker</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stickerSizes.map((size) => {
+                          const production = calculateStickersPerMeter(
+                            size.width,
+                            size.height
+                          );
+                          const totalStickers = production.total * 50;
+                          const costPerSticker =
+                            (calculateCostsPerMeter() * 50) / totalStickers;
+
+                          return (
+                            <tr key={size.name}>
+                              <td className="p-2 border">
+                                {size.name} ({size.width}x{size.height}cm)
+                              </td>
+                              <td className="p-2 border text-center">
+                                {totalStickers.toLocaleString()}
+                              </td>
+                              <td className="p-2 border text-center">
+                                ${costPerSticker.toFixed(2)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </section>
   );
 };
